@@ -62,6 +62,13 @@ Navigate to `http://127.0.0.1:8000` in your web browser to start using the appli
 
 Use the admin panel to manage inventory by accessing `http://127.0.0.1:8000/admin` if you have created the root user.
 
+## Testing
+
+Run tests using:
+```bash
+python manage.py test
+```
+
 ## Contributions
 
 Contributions to this project are welcome. Please ensure to follow the established coding conventions and add tests for new features.
