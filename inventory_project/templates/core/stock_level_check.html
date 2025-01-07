@@ -1,0 +1,54 @@
+<!-- templates/core/stock_level_check.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Stock Level Check
+{% endblock %}
+
+{% block content %}
+  <h1>Stock Level Check</h1>
+  <hr />
+
+  <!-- Filter Form (method GET so query params remain in the URL) -->
+  <form method="POST" class="row g-3 mb-3">
+    {% csrf_token %}
+    <div class="col-md-4">{{ form.name.label_tag }}
+      {{ form.name }}</div>
+    <div class="col-md-4">{{ form.supplier.label_tag }}
+      {{ form.supplier }}</div>
+    <div class="col-md-4">{{ form.min_stock.label_tag }}
+      {{ form.min_stock }}</div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </form>
+
+  <!-- Results Table -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Supplier</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Stock</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+        <tr>
+          <td>{{ product.name }}</td>
+          <td>{{ product.supplier.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>${{ product.price }}</td>
+          <td>{{ product.stock_quantity }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No products found for the given filter.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -4,7 +4,13 @@ from django.contrib import messages
 from django.db import models
 
 from .models import Product, Supplier, StockMovement, SaleOrder
-from .forms import ProductForm, SupplierForm, StockMovementForm, SaleOrderForm
+from .forms import (
+    ProductForm,
+    SupplierForm,
+    StockMovementForm,
+    SaleOrderForm,
+    StockLevelFilterForm,
+)
 
 
 # ----- PRODUCTS -----
@@ -300,8 +306,39 @@ def list_sale_orders(request):
 
 
 def stock_level_check(request):
-    products = Product.objects.all()
-    # We can just display each product’s current stock_quantity
-    return render(
-        request, "core/stock_level_check.html", {"products": products}
-    )
+    """
+    Displays a form to filter products by name, supplier, and/or minimum stock.
+    Shows a list of products that match the criteria, along with their current stock.
+    """
+    products = Product.objects.select_related("supplier").all()
+
+    if request.method == "POST":
+        form = StockLevelFilterForm(request.POST)
+
+        # Start with all products
+
+        if form.is_valid():
+            # Extract cleaned data
+            name = form.cleaned_data.get("name")
+            supplier = form.cleaned_data.get("supplier")
+            min_stock = form.cleaned_data.get("min_stock")
+
+            # Filter by name (case-insensitive partial match)
+            if name:
+                products = products.filter(name__icontains=name)
+
+            # Filter by supplier
+            if supplier:
+                products = products.filter(supplier=supplier)
+
+            # Filter by stock
+            if min_stock is not None:
+                products = products.filter(stock_quantity__gte=min_stock)
+    else:
+        form = StockLevelFilterForm()
+
+    context = {
+        "form": form,
+        "products": products,
+    }
+    return render(request, "core/stock_level_check.html", context)

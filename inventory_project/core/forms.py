@@ -137,3 +137,30 @@ class SaleOrderForm(forms.ModelForm):
         product = self.cleaned_data["product"]
         # Potential extra validations, if needed
         return product
+
+
+class StockLevelFilterForm(forms.Form):
+    """
+    A simple form allowing users to filter products by:
+    - Partial/Full Name
+    - Supplier
+    - Minimum Stock
+    """
+
+    name = forms.CharField(
+        required=False,
+        label="Product Name",
+        widget=forms.TextInput(attrs={"placeholder": "e.g. iPhone"}),
+    )
+    supplier = forms.ModelChoiceField(
+        queryset=Supplier.objects.all(),
+        required=False,
+        label="Supplier",
+        empty_label="-- Any Supplier --",
+    )
+    min_stock = forms.IntegerField(
+        required=False,
+        label="Minimum Stock",
+        min_value=0,
+        widget=forms.NumberInput(attrs={"placeholder": "e.g. 10"}),
+    )
