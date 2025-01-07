@@ -1,6 +1,6 @@
 # core/forms.py
 from django import forms
-from .models import Product, Supplier, StockMovement
+from .models import Product, Supplier, StockMovement, SaleOrder
 
 
 class ProductForm(forms.ModelForm):
@@ -115,3 +115,25 @@ class StockMovementForm(forms.ModelForm):
                 )
 
         return quantity
+
+
+class SaleOrderForm(forms.ModelForm):
+    class Meta:
+        model = SaleOrder
+        # We only allow the user to pick a product and quantity
+        fields = ["product", "quantity"]
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data["quantity"]
+        if quantity < 1:
+            raise forms.ValidationError("Quantity must be at least 1.")
+        return quantity
+
+    def clean_product(self):
+        """
+        Optionally, you could add logic about whether a product is valid
+        for ordering, etc. We'll keep it simple here.
+        """
+        product = self.cleaned_data["product"]
+        # Potential extra validations, if needed
+        return product

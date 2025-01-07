@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.db import models
 
 from .models import Product, Supplier, StockMovement, SaleOrder
-from .forms import ProductForm, SupplierForm, StockMovementForm
+from .forms import ProductForm, SupplierForm, StockMovementForm, SaleOrderForm
 
 
 # ----- PRODUCTS -----
@@ -175,68 +175,78 @@ def list_stock_movements(request):
 
 # ----- SALE ORDERS -----
 
+# core/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.core.paginator import Paginator
+
+from .models import Product, SaleOrder, StockMovement
+from .forms import SaleOrderForm
+
 
 def create_sale_order(request):
     """
-    Create a sale order by selecting a product, verifying sufficient stock, calculating total price, etc.
+    Use a Django form to create a sale order.
+    We do stock checks and set total price in the view logic.
     """
     if request.method == "POST":
-        product_id = request.POST.get("product")
-        quantity = int(request.POST.get("quantity"))
+        form = SaleOrderForm(request.POST)
+        if form.is_valid():
+            # The form is valid, but we still need to do a stock check
+            product = form.cleaned_data["product"]
+            quantity = form.cleaned_data["quantity"]
 
-        product = get_object_or_404(Product, pk=product_id)
+            if product.stock_quantity < quantity:
+                form.add_error(
+                    "quantity", "Insufficient stock for this product."
+                )
+            else:
+                # Enough stock => create the order
+                total_price = product.price.to_decimal() * quantity
 
-        # Check stock
-        if product.stock_quantity < quantity:
-            messages.error(request, "Insufficient stock to create this sale.")
-            return redirect("create_sale_order")
+                sale_order = SaleOrder.objects.create(
+                    product=product,
+                    quantity=quantity,
+                    total_price=total_price,
+                    status="Pending",
+                )
 
-        # Calculate total price
-        total_price = product.price * quantity
+                # Deduct stock immediately (or do so only on "Complete" if that's your policy)
+                product.stock_quantity -= quantity
+                product.save()
 
-        # Create the sale in 'Pending' status
-        sale_order = SaleOrder.objects.create(
-            product=product,
-            quantity=quantity,
-            total_price=total_price,
-            status="Pending",
-        )
+                # Record a StockMovement of type 'Out'
+                StockMovement.objects.create(
+                    product=product,
+                    quantity=quantity,
+                    movement_type="Out",
+                    notes=f"Sale Order #{sale_order.pk}",
+                )
 
-        # Immediately reduce stock (or you can do it upon "Complete", depending on your design)
-        product.stock_quantity -= quantity
-        product.save()
+                messages.success(
+                    request,
+                    f"Sale Order #{sale_order.pk} created successfully!",
+                )
+                return redirect("list_sale_orders")
+    else:
+        # GET request => show empty form
+        form = SaleOrderForm()
 
-        # Record a 'StockMovement' of type 'Out'
-        StockMovement.objects.create(
-            product=product,
-            quantity=quantity,
-            movement_type="Out",
-            notes=f"Sale Order #{sale_order.pk}",
-        )
-        messages.success(request, f"Sale Order #{sale_order.pk} created!")
-        return redirect("list_sale_orders")
-
-    products = Product.objects.all()
-    return render(
-        request, "core/create_sale_order.html", {"products": products}
-    )
+    return render(request, "core/create_sale_order.html", {"form": form})
 
 
 def cancel_sale_order(request, order_id):
-    """
-    Cancel an existing sale order, set status to 'Cancelled', and optionally restore stock if needed.
-    """
     sale_order = get_object_or_404(SaleOrder, pk=order_id)
 
     if sale_order.status == "Pending":
         sale_order.status = "Cancelled"
         sale_order.save()
 
-        # Optional: restore stock
+        # Restore stock if we deducted it already
         sale_order.product.stock_quantity += sale_order.quantity
         sale_order.product.save()
 
-        # Record a StockMovement if you wish
+        # Record stock movement
         StockMovement.objects.create(
             product=sale_order.product,
             quantity=sale_order.quantity,
@@ -244,35 +254,49 @@ def cancel_sale_order(request, order_id):
             notes=f"Cancelled Sale Order #{sale_order.pk}",
         )
 
-        messages.success(
-            request,
-            f"Sale Order #{sale_order.pk} cancelled and stock restored.",
-        )
+        messages.success(request, f"Sale Order #{sale_order.pk} cancelled.")
     else:
         messages.warning(request, "Only 'Pending' orders can be cancelled.")
+
     return redirect("list_sale_orders")
 
 
 def complete_sale_order(request, order_id):
-    """
-    Mark an order as 'Completed' if it is valid.
-    If you haven't already deducted stock, do it here.
-    """
     sale_order = get_object_or_404(SaleOrder, pk=order_id)
     if sale_order.status == "Pending":
         sale_order.status = "Completed"
         sale_order.save()
-        messages.success(request, f"Sale Order #{sale_order.pk} completed.")
+        messages.success(request, f"Sale Order #{sale_order.pk} completed!")
     else:
         messages.warning(request, "Only 'Pending' orders can be completed.")
+
     return redirect("list_sale_orders")
 
 
 def list_sale_orders(request):
-    sale_orders = SaleOrder.objects.select_related("product").all()
-    return render(
-        request, "core/list_sale_orders.html", {"sale_orders": sale_orders}
-    )
+    # Optional filter by status
+    status_filter = request.GET.get("status", "All")
+
+    if status_filter == "All":
+        orders_list = SaleOrder.objects.select_related("product").all()
+    else:
+        orders_list = SaleOrder.objects.select_related("product").filter(
+            status=status_filter
+        )
+
+    # Paginate (10 orders per page, for example)
+    paginator = Paginator(orders_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    status_choices = ["All", "Pending", "Completed", "Cancelled"]
+
+    context = {
+        "page_obj": page_obj,
+        "status_filter": status_filter,
+        "status_choices": status_choices,
+    }
+    return render(request, "core/list_sale_orders.html", context)
 
 
 def stock_level_check(request):

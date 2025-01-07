@@ -1,0 +1,115 @@
+<!-- templates/core/list_sale_orders.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+  Sale Orders
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Sale Orders</h1>
+    <a class="btn btn-primary" href="{% url 'create_sale_order' %}">Create Sale Order</a>
+  </div>
+
+  <hr />
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Filter by status (Dropdown) -->
+  <form method="GET" class="mb-3 row">
+    <div class="col-auto">
+      <label for="status_filter" class="form-label">Filter by status:</label>
+      <select name="status" id="status_filter" class="form-select" onchange="this.form.submit()">
+        {% for status_option in status_choices %}
+          {% if status_option == status_filter %}
+            <option value="{{ status_option }}" selected>{{ status_option }}</option>
+          {% else %}
+            <option value="{{ status_option }}">{{ status_option }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Order #</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+        <th>Sale Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in page_obj %}
+        <tr>
+          <td>{{ order.pk }}</td>
+          <td>{{ order.product.name }}</td>
+          <td>{{ order.quantity }}</td>
+          <td>${{ order.total_price }}</td>
+          <td>{{ order.sale_date }}</td>
+          <td>{{ order.status }}</td>
+          <td>
+            {% if order.status == 'Pending' %}
+              <a href="{% url 'cancel_sale_order' order.pk %}" class="btn btn-warning btn-sm" onclick="return confirm('Are you sure you want to cancel this order?');">Cancel</a>
+              <a href="{% url 'complete_sale_order' order.pk %}" class="btn btn-success btn-sm" onclick="return confirm('Mark this order as completed?');">Complete</a>
+            {% else %}
+              <span class="text-muted">N/A</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No sale orders found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <nav aria-label="Sale orders pagination">
+    <ul class="pagination">
+      <!-- Previous page link -->
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Previous</span>
+        </li>
+      {% endif %}
+
+      <!-- Individual page numbers -->
+      {% for page_num in page_obj.paginator.page_range %}
+        {% if page_num == page_obj.number %}
+          <li class="page-item active">
+            <span class="page-link">{{ page_num }}</span>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_num }}&status={{ status_filter }}">{{ page_num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      <!-- Next page link -->
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}">Next</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Next</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endblock %}

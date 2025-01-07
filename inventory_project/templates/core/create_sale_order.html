@@ -1,0 +1,48 @@
+<!-- templates/core/create_sale_order.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Create Sale Order
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h1>Create Sale Order</h1>
+      <hr />
+
+      <!-- Django messages (success, error, etc.) -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- The SaleOrderForm -->
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <!-- If you want to manually render each field -->
+        <div class="mb-3">
+          {{ form.product.label_tag }}
+          {{ form.product }}
+          {% if form.product.errors %}
+            <div class="text-danger small">{{ form.product.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.quantity.label_tag }}
+          {{ form.quantity }}
+          {% if form.quantity.errors %}
+            <div class="text-danger small">{{ form.quantity.errors }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Order</button>
+        <a href="{% url 'list_sale_orders' %}" class="btn btn-secondary">Back to Orders</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}
