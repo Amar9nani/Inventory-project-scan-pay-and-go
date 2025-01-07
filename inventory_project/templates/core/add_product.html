@@ -1,0 +1,80 @@
+<!-- templates/core/add_product.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Add Product
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h1>Add Product</h1>
+      <hr />
+
+      <!-- Django messages (success, error, etc.) -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- Our form -->
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <!-- Render form fields and errors in a structured way -->
+        <div class="mb-3">
+          {{ form.name.label_tag }}
+          {{ form.name }}
+          <!-- field-specific errors -->
+          {% if form.name.errors %}
+            <div class="text-danger small">{{ form.name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.description.label_tag }}
+          {{ form.description }}
+          {% if form.description.errors %}
+            <div class="text-danger small">{{ form.description.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.category.label_tag }}
+          {{ form.category }}
+          {% if form.category.errors %}
+            <div class="text-danger small">{{ form.category.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.price.label_tag }}
+          {{ form.price }}
+          {% if form.price.errors %}
+            <div class="text-danger small">{{ form.price.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.stock_quantity.label_tag }}
+          {{ form.stock_quantity }}
+          {% if form.stock_quantity.errors %}
+            <div class="text-danger small">{{ form.stock_quantity.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.supplier.label_tag }}
+          {{ form.supplier }}
+          {% if form.supplier.errors %}
+            <div class="text-danger small">{{ form.supplier.errors }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Product</button>
+        <a href="{% url 'list_products' %}" class="btn btn-secondary">Back to List</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

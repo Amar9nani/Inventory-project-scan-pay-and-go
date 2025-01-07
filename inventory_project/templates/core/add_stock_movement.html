@@ -1,0 +1,60 @@
+<!-- templates/core/add_stock_movement.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+  Add Stock Movement
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h1>Add Stock Movement</h1>
+      <hr />
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <!-- You can render fields manually or use {{ form.as_p }} for a quick approach -->
+        <div class="mb-3">
+          {{ form.product.label_tag }}
+          {{ form.product }}
+          {% if form.product.errors %}
+            <div class="text-danger small">{{ form.product.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.movement_type.label_tag }}
+          {{ form.movement_type }}
+          {% if form.movement_type.errors %}
+            <div class="text-danger small">{{ form.movement_type.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.quantity.label_tag }}
+          {{ form.quantity }}
+          {% if form.quantity.errors %}
+            <div class="text-danger small">{{ form.quantity.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.notes.label_tag }}
+          {{ form.notes }}
+          {% if form.notes.errors %}
+            <div class="text-danger small">{{ form.notes.errors }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Movement</button>
+        <a href="{% url 'list_stock_movements' %}" class="btn btn-secondary">Back to Movements</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

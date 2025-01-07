@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Add Supplier
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h1>Add Supplier</h1>
+      <hr />
+
+      <!-- Display Django messages (success/error) -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          {{ form.name.label_tag }}
+          {{ form.name }}
+          {% if form.name.errors %}
+            <div class="text-danger small">{{ form.name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.email.label_tag }}
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger small">{{ form.email.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.phone.label_tag }}
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <div class="text-danger small">{{ form.phone.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.address.label_tag }}
+          {{ form.address }}
+          {% if form.address.errors %}
+            <div class="text-danger small">{{ form.address.errors }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Supplier</button>
+        <a href="{% url 'list_suppliers' %}" class="btn btn-secondary">Back to List</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

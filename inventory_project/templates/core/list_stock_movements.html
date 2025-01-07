@@ -1,0 +1,88 @@
+<!-- templates/core/list_stock_movements.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+  Stock Movements
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Stock Movements</h1>
+    <a class="btn btn-primary" href="{% url 'add_stock_movement' %}">Record New Movement</a>
+  </div>
+
+  <!-- Search Form -->
+  <form method="GET" action="" class="row g-2 mb-3">
+    <div class="col-auto">
+      <input type="text" name="search" placeholder="Search by product name..." value="{{ search_query }}" class="form-control" />
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-secondary">Search</button>
+    </div>
+  </form>
+
+  <!-- Movements Table -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Movement Type</th>
+        <th>Quantity</th>
+        <th>Date</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for movement in page_obj %}
+        <tr>
+          <td>{{ movement.product.name }}</td>
+          <td>{{ movement.movement_type }}</td>
+          <td>{{ movement.quantity }}</td>
+          <td>{{ movement.movement_date }}</td>
+          <td>{{ movement.notes }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No stock movements found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <nav aria-label="Stock movements pagination">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Previous</span>
+        </li>
+      {% endif %}
+
+      {% for page_num in page_obj.paginator.page_range %}
+        {% if page_num == page_obj.number %}
+          <li class="page-item active">
+            <span class="page-link">{{ page_num }}</span>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_num }}&search={{ search_query }}">{{ page_num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}">Next</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Next</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endblock %}

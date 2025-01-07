@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # MongoDB service
+  mongo:
+    image: mongo:latest
+    container_name: mongo_db
+    # Map Mongo's default port to host's 27017
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH_USERNAME: root
+      ME_CONFIG_BASICAUTH_PASSWORD: dummy
+      # ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      # ME_CONFIG_MONGODB_ADMINPASSWORD: dummy
+      # ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      # # ME_CONFIG_MONGODB_URL: mongodb://root:dummy@mongo:27017/
+      # ME_CONFIG_BASICAUTH: true
+
+  # Django (web) service
+  # web:
+  #   build: 
+  #     context: ./inventory_project
+  #     dockerfile: Dockerfile
+  #   container_name: django_app
+  #   volumes:
+  #     - ./inventory_project:/app
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - mongo
+  #   environment:
+  #     # Example environment variables if you read them in Django settings
+  #     - DB_NAME=my_inventory_db
+  #     - DB_HOST=mongo
+  #     - DB_PORT=27017
+  #   command: >
+  #     sh -c "python manage.py migrate &&
+  #            python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  mongo_data:
