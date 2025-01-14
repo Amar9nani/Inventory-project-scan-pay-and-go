@@ -1,5 +1,6 @@
-Inventory Management System
-Overview
+##Inventory Management System
+
+#Overview
 This Django-based Inventory Management System is designed to efficiently manage products, stock levels, suppliers, and sales. The system supports essential CRUD operations for managing products, suppliers, and tracking sales orders. It is also equipped with a user-friendly admin panel to facilitate inventory management.
 
 Project Structure
